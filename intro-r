@@ -1,0 +1,46 @@
+naming vactor:
+
+# Poker winnings from Monday to Friday
+poker_vector <- c(140, -50, 20, -120, 240)
+
+# Roulette winnings from Monday to Friday
+roulette_vector <- c(-24, -50, 100, -350, 10)
+
+# The variable days_vector
+days_vector <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+
+# Assign the names of the day to roulette_vector and poker_vector
+names(poker_vector) <- days_vector     # naming the vectors
+names(roulette_vector) <- days_vector
+
+====================================================================================
+Vector selection:
+
+to select the first element of the vector, you type poker_vector[1]. To select the second element of the vector, you type poker_vector[2]
+poker_vector[2:4].
+
+Another way to select the first element is by using the names of the vector elements (Monday, Tuesday, ...) instead of their numeric positions. For example,
+poker_vector["Monday"] will select the first element of poker_vector since "Monday" is the name of that first element.
+
+you can also use the element names to select multiple elements, for example: poker_vector[c("Monday","Tuesday")]
+
+Calculate the average of the values use the  mean() function.
+
+====================================================================================
+
+selection by comparison:
+> c(4, 5, 6) > 5
+[1] FALSE FALSE TRUE
+The results  is a vector as well
+
+u can select the desired elements, by putting selection_vector between the square brackets that follow poker_vector:
+poker_vector[selection_vector] R knows what to do when you pass a logical vector in square brackets: it will only select
+the elements that correspond to TRUE in selection_vector.
+
+====================================================================================
+
+
+ANOVA - analysis of variance
+
+The analysis of variance is a commonly used method to determine differences between several samples.
+R provides a function to conduct ANOVA so: aov(model, data)
