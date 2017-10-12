@@ -1,0 +1,185 @@
+Intro to STATA 
+
+- computer on 4th floor of robarts library has stata preinstalled
+
+The BASIC 
+- .do file is STATA is that you execute
+- log file keep track of everything that appears in the results screen
+    $ log using "assignment1.log", log
+    $ log using "mylogfile.txt", replace
+    $ log close
+    
+    //The file mylogfile.txt wil be created in hour working directory. The replace option tells Stata to overwrite the log file: 
+    the log file is overwritten everytime you re-run your do-file. 
+
+- clear command: always use it at the beginning of your.do file or before loading a new dataset, stat can only hold one dataset at a time,
+- if you wanna load another dataset, you need to use clear the memory
+    $ sysuse auto, clear      // use just use as it is
+    $ display "hello world"   // also can be written as "dis"
+    $ browse       // browse the data set
+    $ sort price    // sorts the data by ascending price
+    $ gsort -mpg price   //sorts the data by descending mpg then ascending price
+- subsettign Datasets: selectively remove certain oabservations or restrict the data to specific subsets of observations
+    $ drop if black == 1
+    $ keep if price >= 400
+note: they permanently erase observations/ variables from memory, which cannot be recovered without reloading the datasets.
+    $ tabulate make if mpg < 18
+    //it is also possible to apply commands selectively to observations satisfying a condition without have to erase them beforehand 
+
+- set more off/on command: it is set to on by default, honestly don't know what does it mean
+
+- load and save
+   $ use datafile1.dta   // load datafile in stata
+   $ insheet using "datafile1.csv"  // read .csv file
+   $ outsheet using "mydata.csv", delimiter(",") names  //export the data to a comma-delimited csv file using outsheet
+   $ export excel using "mydata.xlsx", sheet("Sheet1")
+   $    firstrow(variables)           
+   // where the sheet("sheet1") specifies that the data should be outputted to the "Sheet1" work sheet and firstrow( variables)
+   tells stata to place the variable names in the first rwo
+   $ destring variable, replace     // when load a .csv file stata will read numbers as strings, so you need to destring them
+   $ save newfilename, replace    // save files
+   $ saveold "mydata.dta", replace  // if you want to sae he file in a dta format compatible with earlier versions of stata
+   $ sysuse auto      // sysuse load the stata built-in dataset named auto
+   $
+note: remember to put the data set in the working space
+GENERATE VARIABLE
+
+- "generate"/ "gener" command operated on each observation independently
+    $ gener gdp = cons + inv + gov_spending + net.exports
+    $ gener lgdp = log(gdp)
+    $ gener lprice =ln(price)   
+    // create  a new variable called "lprice" 
+    // stata goes through each observation one by one and computes its price
+    $ lable variable lprice "Log(price)"    
+    // when generating a new variable, it is good prictice to give the variable a label
+    // which will be used by stata in various outputs.
+
+
+-we can also create a new string (text) variable, "mpg_range" with string values "mpg <18", "mpg = 18" and "mpg > 18" 
+   $ gen mpg_range = "Less than 18" if mpg< 18       // The remaining observations will be assigned missing mpg_range values. we can
+   $ replace mpg_range = "Mpg = 18" if mpg == 18 
+   $ replace mpg_range = "More than 18" if mpg > 18
+   // then use two replace commands with their own set of if condition to replace the missing mpg_range values with the appropriate values     
+   $ label variable mpg_range "MPG range"    
+
+
+-   $ egen totalgdp = total(gdp)    
+     // operates on multiple overvations of a single variable 
+     // It is used to take averages find the median , sum up across observations and so on
+-   $ drop var1 var2 var3 drop variables using "drop" command
+- "or" operater is "|"
+    $ sum y if(y<5|y>9)
+
+- simple steps to generate dummies variable:
+    $ gener dummy = 0
+    $ replace dummy =1 if gdp > 5
+- generate dummy for missing observations for some variable:
+    $ gener dummy = 0
+    $ replace dummy = 1 if missing variable 
+- suppose we have three groups of data, defined by the variable "group" and you want three dummies, one for each group 
+    $ tabulate group, gen(dum)
+    $ tabulate year, gen (dum)
+
+
+
+
+ANALYSIS
+
+- correlate command output a table of pairwise correlation for specified varaibles:
+    $ correlate price mpg weight
+
+-  tabulate command produce tabulations and cross-tabulations for categorical variables:
+    $ tabulate make     // tabulate the make variable
+    $ tabulate rep78 foreign, missing    // cross tabulate rep78 vs, foreign, with missing values included
+
+-  Summary stats 
+
+   $ describe    
+   // outputs infromation about the dataset such as the number of observations, as well as information on the variables and their formats 
+   // describe works on numeric or strings variable
+
+   $ sum income       // 
+   $ sum income if male == 1 
+   $ by gender, sort: sum income 
+   $ summarize price mpg weight     // only works for numeric variables
+   $ summarize price, detail     // print more detailed summary statistics for the price variable 
+- distribution for variable:
+   $ tabulate age
+
+- Graph
+   $ twoway scatter y x  // scatter plot 
+   $ twoway(scatter y x) (lift y x)  // combine plot with an PLS line of best fit using the lift command.
+
+   $ twoway(scatter y x), xtitle("this is a title for x axis")ytitle("ythis is a tile for y axis") title(" the main title")
+    // custom tiltes and axis
+   $ histogram income, kdensity
+   $ histogram mpg 
+   $ graph export "mpg histogram.png", replace 
+    // we can also save the graph as a PNG file
+
+
+- Regression
+   $ regress y x1 x2  
+   $ regress mpg weight     //  using OLS model: mpg = a + bwieght + e 
+   $ regress mpg weight froeign  // using OLS model: mpg = a + b1weight + b2foreign + e
+   $ reg Y X    // running regression of Y on X for teh whole sample 
+   $ reg Y X if X> 5   // running regression of Y  on X for part of the sample
+   $ ivreg Y (X = Z)   // running regression of Y  on X with Z as the instrument
+   $ reg Y X, robust   // use robust after the reg command, for rubust Newey-West standard errors
+note: regression does not allow you to transform the varible reg Y log(x) is invalid
+
+- Post-Estimation, TESTS
+   $ ttest union == 0.28   // null hypothesis : H0 >= 0.28
+   $ test X         // to do a t-test on the null hypothesis that coefficient on X is euqla to zero
+   $ test X1 X2     // independent variables X1 and X2, run a F-test that the coefficients on both are qual to zero
+   $ predict ehat, residual    // to obtain predicted residual
+   $ predict yhat        // to obtain the fitted value of y
+
+
+MORE ADVANCED STUFF
+-Merging and Appending data
+   $ merge 1:1 index using "dataset2.dta"   
+   //add new variables from dataset 2 to dataset 1 based on some index, no new observations are added
+   // it does get complicated, need to worry about which data-set uniquely identifies your observations, knowing if everything is matched
+
+   $ append using "dataset2.dta"  // put all of the observations of dataset 2 under the obserations of dataset 1 no new variables are added
+
+-Declaring time series and panel data
+   $ tsset year // declaring year is the time variable 
+   $ xtset year group     //   declaring year is the time variable and group is the group variable
+   $ gener lagvar = L.(var)   // declare lagged variable 
+   $ gener difvar = D.(var)   // declare the diffrenced variable
+note: declaring panel data allows you to use panel data estimators e.g: xtivreg, xtdpd
+
+- installing new commends
+   $ ssc install outreg2    // official commands can be installed using ssc install, outreg2 can be use to create professional looking regtression talbes
+note: other useful commands include findit / ivreg2 /  xtivreg2 / findit
+
+GENERAL TIPS AND COMMENTS
+- by      is vary useful
+  $ by group, sort: egen avgX = mean(x)
+- setting up the working directory
+  $ cd  " user/path/"    //remember to define your working space bef move directories 
+- comments:
+  # starting a line with * means that its a comment
+  $ /* this is a block of comment */
+  $ // nothing to right of this will be read by stata
+- missing values 
+    - are recorded as numeric variables . (a dot) and missing values in string variables as "" (empty string)
+    - some commands automatically ignore observations with missing values in variables listed in the command 
+    - caution: replace x = 10 if x >10 would replace missing values with 10, since missing vlues .  is considered greater than 10
+
+
+
+
+
+
+
+
+
+
+
+   
+
+
+
